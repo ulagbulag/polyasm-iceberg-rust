@@ -31,7 +31,7 @@ use crate::utils::from_opendal_error;
 // ---------------------------------------------------------------------------
 
 /// Repository type of a HuggingFace Hub repository.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub(crate) enum HfRepoType {
     /// Model repository (`models/` prefix).
     Model,

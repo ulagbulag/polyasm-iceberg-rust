@@ -27,6 +27,7 @@ mod utils;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::sync::Arc;
+use std::time::Duration;
 
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -365,7 +366,15 @@ impl OpenDalStorage {
         // Transient errors are common for object stores; we retry temporary
         // failures with exponential backoff. The retry behavior also
         // benefits non-object-store backends.
-        let operator = operator.layer(TimeoutLayer::new()).layer(RetryLayer::new());
+        //
+        // A link share below one gigabit stalls between chunks for longer
+        // than the default ten-second per-attempt io timeout once sixteen
+        // concurrent reads saturate its 100 Mbit/s token bucket. The
+        // 180-second per-attempt io timeout carries those stalls through to
+        // completion and bounds failure handling alone.
+        let operator = operator
+            .layer(TimeoutLayer::new().with_io_timeout(Duration::from_secs(180)))
+            .layer(RetryLayer::new());
         Ok((operator, relative_path))
     }
 
